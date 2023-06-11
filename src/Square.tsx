@@ -1,8 +1,9 @@
 type Props = {
   index: number;
-  onClick(event: any): void;
+  onClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void;
   player?: string;
 };
+
 
 function Square({ index, onClick, player }: Props) {
   const scale = player ? "scale-100" : "scale-0";
