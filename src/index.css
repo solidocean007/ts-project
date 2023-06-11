@@ -2,13 +2,16 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-body {
+html, body {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh; /* instead of height: 100vh; */
+  overflow-x: hidden; /* new */
+  width: 100%;
 }
 
 #root {
-  height: 100%;
+  min-height: 100%; /* instead of height: 100%; */
+  width: 100%;
 }
 
 @layer base {

@@ -9,6 +9,10 @@ module.exports = {
     ],
   },
   theme: {
+    screens: {
+      'xs': '440px',
+      ...defaultTheme.screens,
+    },
     extend: {
       fontFamily: {
         display: ["Lobster", ...defaultTheme.fontFamily.sans],

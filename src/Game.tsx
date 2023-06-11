@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Square from "./Square";
 
 type Scores = {
@@ -24,24 +24,9 @@ function Game() {
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [scores, setScores] = useState(INITIAL_SCORES);
 
-  useEffect(() => {
-    const storedScores = localStorage.getItem("scores");
-    if (storedScores) {
-      setScores(JSON.parse(storedScores));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (gameState === INITIAL_GAME_STATE) {
-      return
-    }
-    checkForWinner();
-    changePlayer();
-  }, [gameState]);
-
   const resetBoard = () => setGameState(INITIAL_GAME_STATE);
 
-  const handleWin = () => {
+  const handleWin = useCallback(() => {
     window.alert(`Congrats player ${currentPlayer}! You are the winner!`);
     const newPlayerScore = scores[currentPlayer] + 1;
     const newScores = { ...scores };
@@ -50,22 +35,27 @@ function Game() {
     localStorage.setItem("scores", JSON.stringify(newScores));
 
     resetBoard();
-  };
+  }, [currentPlayer, scores]);
 
-  const handleDraw = () => {
+  const handleDraw = useCallback(() => {
     window.alert("The game ended in a draw");
     resetBoard();
-  };
+  }, []);
 
-  const checkForWinner = () => {
+  const changePlayer = useCallback(() => {
+    setCurrentPlayer((prevPlayer) => prevPlayer === "X" ? "O" : "X");
+  }, []);
+  
+
+  const checkForWinner = useCallback(() => {
     let roundWon = false;
     for (let i = 0; i < WINNING_COMBOS.length; i++) {
       const winCombo = WINNING_COMBOS[i];
-
+  
       const a = gameState[winCombo[0]];
       const b = gameState[winCombo[1]];
       const c = gameState[winCombo[2]];
-
+  
       if ([a, b, c].includes("")) {
         continue;
       }
@@ -74,25 +64,41 @@ function Game() {
         break;
       }
     }
-
+  
     if (roundWon) {
       setTimeout(() => handleWin(), 500);
       return;
     }
-
+  
     if (!gameState.includes("")) {
       setTimeout(() => handleDraw(), 500);
       return;
     }
-    changePlayer();
-  };
+    
+    // If it's not a win or a draw, change player
+    
+  }, [gameState, handleWin, handleDraw]);
+  
 
-  const changePlayer = () => {
-    setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
-  };
+  useEffect(() => {
+    if (gameState === INITIAL_GAME_STATE) {
+      return;
+    }
+    checkForWinner();
+  }, [gameState, checkForWinner]);
 
-  const handleCellClick = (event: any) => {
-    const cellIndex = Number(event.target.getAttribute("data-cell-index"));
+  useEffect(() => {
+    const storedScores = localStorage.getItem("scores");
+    if (storedScores) {
+      setScores(JSON.parse(storedScores));
+    }
+  }, []);
+
+  const handleCellClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    const target = event.target as Element;
+    const cellIndex = Number(target.getAttribute("data-cell-index"));
 
     const currentValue = gameState[cellIndex];
     if (currentValue) {
@@ -102,15 +108,16 @@ function Game() {
     const newValues = [...gameState];
     newValues[cellIndex] = currentPlayer;
     setGameState(newValues);
+    changePlayer();
   };
 
   return (
-    <div className="h-full p-8 text-slate800 bg-gradient-to-r from-cyan-500 to-blue-500">
+    <div className="min-h-screen w-full p-8 text-slate800 bg-gradient-to-r from-cyan-500 to-blue-500">
       <h1 className="text-center text-5xl mb-4 font-display text-white">
         Tic Tac Toe
       </h1>
       <div>
-        <div className="grid grid-cols-3 gap-3 mx-auto w-96">
+        <div className="grid grid-cols-3 gap-3 mx-auto  w-50 sm:w-96">
           {gameState.map((player, index) => (
             <Square
               key={index}
